@@ -1,5 +1,6 @@
 package com.chadrc.timewebservice;
 
+import com.sun.istack.internal.NotNull;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
@@ -8,6 +9,8 @@ import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 
 public class Main {
@@ -16,7 +19,9 @@ public class Main {
         try {
             HttpServer server = HttpServer.create(new InetSocketAddress(8000), 0);
             server.createContext("/", new DefaultHttpHandler());
-            server.createContext("/time", new TimeHttpHandler());
+            server.createContext("/time", new TimeHttpHandler(new SimpleDateFormat("HH:mm:ss z")));
+            server.createContext("/date", new TimeHttpHandler(new SimpleDateFormat("E M-d-y")));
+            server.createContext("/datetime", new TimeHttpHandler(new SimpleDateFormat("E M-d-y HH:mm:ss z")));
             server.setExecutor(null);
             server.start();
             System.out.println("Server Started");
@@ -30,7 +35,7 @@ public class Main {
     private static class DefaultHttpHandler implements HttpHandler {
         private String indexText;
 
-        public DefaultHttpHandler() {
+        DefaultHttpHandler() {
             indexText = "<p>Date-Time Service</p>";
             File file = new File("index.html");
             try (FileInputStream stream = new FileInputStream(file)) {
@@ -54,16 +59,54 @@ public class Main {
     }
 
     private static class TimeHttpHandler implements HttpHandler {
+        SimpleDateFormat format;
+
+        TimeHttpHandler(@NotNull SimpleDateFormat format) {
+            this.format = format;
+        }
+
         @Override
         public void handle(HttpExchange httpExchange) throws IOException {
-            String timeString = "<p>" + new Date().toString() + "</p>";
-            for (String k :
-                    httpExchange.getRequestHeaders().keySet()) {
-                System.out.println(k + ":" + httpExchange.getRequestHeaders().get(k));
+            String dateString = format.format(new Date());
+            String response;
+            String[] uriSplit = httpExchange.getRequestURI().toString().trim().split("/");
+            ArrayList<String> uriParams = new ArrayList<>();
+            for (String s :
+                    uriSplit) {
+                if (!s.isEmpty()) {
+                    uriParams.add(s);
+                }
             }
-            httpExchange.sendResponseHeaders(200, timeString.length());
+            if (uriParams.size() > 1) {
+                switch (uriParams.get(1)) {
+                    case "json":
+                        response = "{ 'time' : '" + dateString + "' }";
+                        break;
+
+                    case "xml":
+                        response = "<time>" +
+                                "<value>" + dateString + "</value>" +
+                                "</time>";
+                        break;
+
+                    case "plain":
+                        response = dateString;
+                        break;
+
+                    case "html":
+                        response = "<p>" + dateString + "</p>";
+                        break;
+
+                    default:
+                        response = "<p>Invalid Format Request.</p>";
+                        break;
+                }
+            } else {
+                response = "<p>" + dateString + "</p>";
+            }
+            httpExchange.sendResponseHeaders(200, response.length());
             OutputStream outputStream = httpExchange.getResponseBody();
-            outputStream.write(timeString.getBytes());
+            outputStream.write(response.getBytes());
             outputStream.close();
         }
     }
