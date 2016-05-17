@@ -7,6 +7,7 @@ import com.sun.net.httpserver.HttpServer;
 
 import java.io.*;
 import java.net.InetSocketAddress;
+import java.net.URI;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
@@ -19,9 +20,10 @@ public class Main {
         try {
             HttpServer server = HttpServer.create(new InetSocketAddress(8000), 0);
             server.createContext("/", new DefaultHttpHandler());
-            server.createContext("/time", new TimeHttpHandler(new SimpleDateFormat("HH:mm:ss z")));
-            server.createContext("/date", new TimeHttpHandler(new SimpleDateFormat("E M-d-y")));
-            server.createContext("/datetime", new TimeHttpHandler(new SimpleDateFormat("E M-d-y HH:mm:ss z")));
+            server.createContext("/time", new DateTimeHttpHandler(new SimpleDateFormat("HH:mm:ss z")));
+            server.createContext("/date", new DateTimeHttpHandler(new SimpleDateFormat("E M-d-y")));
+            server.createContext("/datetime", new DateTimeHttpHandler(new SimpleDateFormat("E M-d-y HH:mm:ss z")));
+            server.createContext("/custom", new CustomDateTimeHttpHandler());
             server.setExecutor(null);
             server.start();
             System.out.println("Server Started");
@@ -58,56 +60,96 @@ public class Main {
         }
     }
 
-    private static class TimeHttpHandler implements HttpHandler {
+    private static class CustomDateTimeHttpHandler extends DateTimeHttpHandler {
+
+        @Override
+        public void handle(HttpExchange httpExchange) {
+            ArrayList<String> uriParams = splitTrimRequestURI(httpExchange.getRequestURI());
+            try {
+                if (uriParams.size() > 1) {
+                    format = new SimpleDateFormat(uriParams.get(1));
+                    if (uriParams.size() > 2) {
+                        sendResponse(uriParams.get(2), httpExchange);
+                    } else {
+                        sendResponse("html", httpExchange);
+                    }
+                } else {
+                    sendResponse("invalid", httpExchange);
+                }
+            } catch (IllegalArgumentException e) {
+                sendResponse("invalid", httpExchange);
+            }
+        }
+    }
+
+    private static class DateTimeHttpHandler implements HttpHandler {
         SimpleDateFormat format;
 
-        TimeHttpHandler(@NotNull SimpleDateFormat format) {
+        DateTimeHttpHandler() {
+            format = new SimpleDateFormat();
+        }
+
+        DateTimeHttpHandler(@NotNull SimpleDateFormat format) {
             this.format = format;
         }
 
         @Override
         public void handle(HttpExchange httpExchange) throws IOException {
-            String dateString = format.format(new Date());
-            String response;
-            String[] uriSplit = httpExchange.getRequestURI().toString().trim().split("/");
+            ArrayList<String> uriParams = splitTrimRequestURI(httpExchange.getRequestURI());
+            if (uriParams.size() > 1) {
+                sendResponse(uriParams.get(1), httpExchange);
+            } else {
+                sendResponse("html", httpExchange);
+            }
+        }
+
+        ArrayList<String> splitTrimRequestURI(URI uri) {
+            String[] uriSplit = uri.toString().trim().split("/");
             ArrayList<String> uriParams = new ArrayList<>();
-            for (String s :
-                    uriSplit) {
+            for (String s : uriSplit) {
                 if (!s.isEmpty()) {
                     uriParams.add(s);
                 }
             }
-            if (uriParams.size() > 1) {
-                switch (uriParams.get(1)) {
-                    case "json":
-                        response = "{ 'time' : '" + dateString + "' }";
-                        break;
+            return uriParams;
+        }
 
-                    case "xml":
-                        response = "<time>" +
-                                "<value>" + dateString + "</value>" +
-                                "</time>";
-                        break;
-
-                    case "plain":
-                        response = dateString;
-                        break;
-
-                    case "html":
-                        response = "<p>" + dateString + "</p>";
-                        break;
-
-                    default:
-                        response = "<p>Invalid Format Request.</p>";
-                        break;
-                }
-            } else {
-                response = "<p>" + dateString + "</p>";
+        void sendResponse(String responseFormat, HttpExchange httpExchange) {
+            String dateString = format.format(new Date());
+            if (dateString.isEmpty()) {
+                responseFormat = "invalid";
             }
-            httpExchange.sendResponseHeaders(200, response.length());
-            OutputStream outputStream = httpExchange.getResponseBody();
-            outputStream.write(response.getBytes());
-            outputStream.close();
+            String response;
+            switch (responseFormat) {
+                case "json":
+                    response = "{ 'datetime' : '" + dateString + "' }";
+                    break;
+
+                case "xml":
+                    response = "<datetime>" +
+                            "<value>" + dateString + "</value>" +
+                            "</datetime>";
+                    break;
+
+                case "plain":
+                    response = dateString;
+                    break;
+
+                case "html":
+                    response = "<p>" + dateString + "</p>";
+                    break;
+
+                default:
+                    response = "<p>Invalid Format Request.</p>";
+                    break;
+            }
+            try (OutputStream outputStream = httpExchange.getResponseBody()){
+                httpExchange.sendResponseHeaders(200, response.length());
+                outputStream.write(response.getBytes());
+                outputStream.close();
+            } catch (Exception e) {
+                System.out.println("Failed to send response: " + e);
+            }
         }
     }
 }
