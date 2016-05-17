@@ -9,14 +9,123 @@
     <p>/date will display only the date.</p>
     <p>/time will display only the date.</p>
     <p>/datetime will display both date and time.</p>
+    <p>/custom will allow your to specify your own format</p>
 <h3>Second Parameter</h3>
     <p>nothing or /html will return request as HTML</p>
     <p>/json will return request as JSON</p>
     <p>/xml will return request as XML</p>
     <p>/plain will return request as plain text</p>
+<h3>Custom Format Codes</h3>
+<p>Type a custom format after /custom to receive custom format.</p>
+<!-- Directly from http://docs.oracle.com/javase/6/docs/api/java/text/SimpleDateFormat.html -->
+<table border="0" cellspacing="3" cellpadding="0" summary="Chart shows pattern letters, date/time component, presentation, and examples.">
+    <tbody><tr bgcolor="#ccccff">
+        <th align="left">Letter
+        </th><th align="left">Date or Time Component
+    </th><th align="left">Presentation
+    </th><th align="left">Examples
+    </th></tr><tr>
+        <td><code>G</code>
+        </td><td>Era designator
+    </td><td><a href="#text">Text</a>
+    </td><td><code>AD</code>
+    </td></tr><tr bgcolor="#eeeeff">
+        <td><code>y</code>
+        </td><td>Year
+    </td><td><a href="#year">Year</a>
+    </td><td><code>1996</code>; <code>96</code>
+    </td></tr><tr>
+        <td><code>M</code>
+        </td><td>Month in year
+    </td><td><a href="#month">Month</a>
+    </td><td><code>July</code>; <code>Jul</code>; <code>07</code>
+    </td></tr><tr bgcolor="#eeeeff">
+        <td><code>w</code>
+        </td><td>Week in year
+    </td><td><a href="#number">Number</a>
+    </td><td><code>27</code>
+    </td></tr><tr>
+        <td><code>W</code>
+        </td><td>Week in month
+    </td><td><a href="#number">Number</a>
+    </td><td><code>2</code>
+    </td></tr><tr bgcolor="#eeeeff">
+        <td><code>D</code>
+        </td><td>Day in year
+    </td><td><a href="#number">Number</a>
+    </td><td><code>189</code>
+    </td></tr><tr>
+        <td><code>d</code>
+        </td><td>Day in month
+    </td><td><a href="#number">Number</a>
+    </td><td><code>10</code>
+    </td></tr><tr bgcolor="#eeeeff">
+        <td><code>F</code>
+        </td><td>Day of week in month
+    </td><td><a href="#number">Number</a>
+    </td><td><code>2</code>
+    </td></tr><tr>
+        <td><code>E</code>
+        </td><td>Day in week
+    </td><td><a href="#text">Text</a>
+    </td><td><code>Tuesday</code>; <code>Tue</code>
+    </td></tr><tr bgcolor="#eeeeff">
+        <td><code>a</code>
+        </td><td>Am/pm marker
+    </td><td><a href="#text">Text</a>
+    </td><td><code>PM</code>
+    </td></tr><tr>
+        <td><code>H</code>
+        </td><td>Hour in day (0-23)
+    </td><td><a href="#number">Number</a>
+    </td><td><code>0</code>
+    </td></tr><tr bgcolor="#eeeeff">
+        <td><code>k</code>
+        </td><td>Hour in day (1-24)
+    </td><td><a href="#number">Number</a>
+    </td><td><code>24</code>
+    </td></tr><tr>
+        <td><code>K</code>
+        </td><td>Hour in am/pm (0-11)
+    </td><td><a href="#number">Number</a>
+    </td><td><code>0</code>
+    </td></tr><tr bgcolor="#eeeeff">
+        <td><code>h</code>
+        </td><td>Hour in am/pm (1-12)
+    </td><td><a href="#number">Number</a>
+    </td><td><code>12</code>
+    </td></tr><tr>
+        <td><code>m</code>
+        </td><td>Minute in hour
+    </td><td><a href="#number">Number</a>
+    </td><td><code>30</code>
+    </td></tr><tr bgcolor="#eeeeff">
+        <td><code>s</code>
+        </td><td>Second in minute
+    </td><td><a href="#number">Number</a>
+    </td><td><code>55</code>
+    </td></tr><tr>
+        <td><code>S</code>
+        </td><td>Millisecond
+    </td><td><a href="#number">Number</a>
+    </td><td><code>978</code>
+    </td></tr><tr bgcolor="#eeeeff">
+        <td><code>z</code>
+        </td><td>Time zone
+    </td><td><a href="#timezone">General time zone</a>
+    </td><td><code>Pacific Standard Time</code>; <code>PST</code>; <code>GMT-08:00</code>
+    </td></tr><tr>
+        <td><code>Z</code>
+        </td><td>Time zone
+    </td><td><a href="#rfc822timezone">RFC 822 time zone</a>
+    </td><td><code>-0800</code>
+    </td></tr></tbody>
+</table>
 <h3>Examples</h3>
-    <p>/date/json will return only the date in JSON format</p>
-    <p>/datetime will return the data and time in HTML</p>
-    <p>/time/plain will return the time as plain text</p>
+<p>/date/json will return 'Mon 05-16-2016' in JSON format</p>
+<p>/datetime will return '13:00:00' (1pm military) in HTML</p>
+<p>/time/plain will return "13:00:00' as plain text</p>
+<p>/custom/MM-YY - will return '05-16' for May 2016 in HTML</p>
+<p>/custom/MM YY/xml - will return '05 16' for May 2016 in XML</p>
 </body>
 </html>

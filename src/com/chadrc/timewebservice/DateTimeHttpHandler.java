@@ -6,7 +6,9 @@ import com.sun.net.httpserver.HttpHandler;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URLDecoder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -40,7 +42,11 @@ class DateTimeHttpHandler implements HttpHandler {
         ArrayList<String> uriParams = new ArrayList<>();
         for (String s : uriSplit) {
             if (!s.isEmpty()) {
-                uriParams.add(s);
+                try {
+                    uriParams.add(URLDecoder.decode(s, "UTF-8"));
+                } catch (UnsupportedEncodingException e) {
+                    uriParams.add(s);
+                }
             }
         }
         return uriParams;
